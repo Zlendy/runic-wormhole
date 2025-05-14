@@ -2,16 +2,17 @@
   import { invoke } from "@tauri-apps/api/core";
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import { Maximize, Minimize, Minus, X } from '@lucide/svelte';
+  import { Button } from "$lib/components/ui/button";
+  import { isMaximized } from "$lib/window.svelte";
 
   const appWindow = getCurrentWindow();
 
   appWindow.onResized(async () => {
-    isMaximized = await appWindow.isMaximized();
+    isMaximized.value = await appWindow.isMaximized();
   });
 
   let name = $state("");
   let greetMsg = $state("");
-  let isMaximized = $state(false);
 
   async function greet(event: Event) {
     event.preventDefault();
@@ -20,20 +21,20 @@
   }
 </script>
 
-<div class="p-4 flex gap-4 flex-row-reverse" data-tauri-drag-region>
-  <button onclick={appWindow.close}>
+<div class="flex p-1 gap-1 flex-row-reverse" data-tauri-drag-region>
+  <Button class="focus-visible:ring-0 focus-visible:ring-offset-0 focus:bg-accent focus:text-accent-foreground" variant="ghost" size="icon" onclick={appWindow.close}>
     <X />
-  </button>
-  <button onclick={appWindow.toggleMaximize}>
-    {#if isMaximized}
+  </Button>
+  <Button class="focus-visible:ring-0 focus-visible:ring-offset-0 focus:bg-accent focus:text-accent-foreground" variant="ghost" size="icon" onclick={appWindow.toggleMaximize}>
+    {#if isMaximized.value}
       <Minimize />
     {:else}
       <Maximize />
     {/if}
-  </button>
-  <button onclick={appWindow.minimize}>
+  </Button>
+  <Button class="focus-visible:ring-0 focus-visible:ring-offset-0 focus:bg-accent focus:text-accent-foreground" variant="ghost" size="icon" onclick={appWindow.minimize}>
     <Minus />
-  </button>
+  </Button>
 </div>
 
 <main class="container">
