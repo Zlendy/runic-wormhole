@@ -1,20 +1,23 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/core';
+	import { Label } from '$lib/components/ui/label';
+	import { Input } from '$lib/components/ui/input';
+	import Button from '$lib/components/ui/button/button.svelte';
 
-	let name = $state('');
-	let greetMsg = $state('');
+	let path = $state('');
 
-	async function greet(event: Event) {
+	async function send_file(event: Event) {
 		event.preventDefault();
-		// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-		greetMsg = await invoke('greet', { name });
+
+		const response = await invoke('send_file', { path });
+		console.log('response', response);
 	}
 </script>
 
-<main class="container">
-	<form class="row" onsubmit={greet}>
-		<input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-		<button type="submit">Greet</button>
-	</form>
-	<p>{greetMsg}</p>
-</main>
+<div class="grid w-full max-w-sm items-center gap-1.5">
+	<!-- <Label for="files">Files</Label>
+	<Input id="files" type="file" bind:files /> -->
+	<Label for="path">Path</Label>
+	<Input id="path" bind:value={path} />
+	<Button onclick={send_file}>Send</Button>
+</div>
