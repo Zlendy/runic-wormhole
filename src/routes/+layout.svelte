@@ -14,7 +14,7 @@
 			class="focus:bg-accent focus:text-accent-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
 			variant="ghost"
 			size="icon"
-			onclick={close}
+			onclick={TauriWindow.close}
 		>
 			<X />
 		</Button>
