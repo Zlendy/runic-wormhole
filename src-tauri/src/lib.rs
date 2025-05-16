@@ -1,4 +1,4 @@
-use std::{os::unix::fs::MetadataExt, time::Duration};
+use std::time::Duration;
 
 use async_std::{fs::File, task::sleep};
 use wormhole::{
@@ -77,7 +77,7 @@ async fn send_file(path: String) -> Result<String, RunicError> {
         relay_hints,
         &mut file,
         "filename.png".to_string(),
-        metadata.size(),
+        metadata.len(),
         wormhole::transit::Abilities::ALL,
         transit_handler,
         progress_handler,
