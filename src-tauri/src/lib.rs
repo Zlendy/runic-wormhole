@@ -1,9 +1,9 @@
-use std::time::Duration;
-
-use async_std::{fs::File, task::sleep};
+use async_std::fs::File;
+use serde::Serialize;
+use tauri::{ipc::Channel, AppHandle};
 use wormhole::{
     transfer::TransferError,
-    transit::{ConnectionType, RelayHint, TransitInfo},
+    transit::{ConnectionType, RelayHint},
     MailboxConnection, Wormhole, WormholeError,
 };
 
@@ -27,29 +27,27 @@ impl serde::Serialize for RunicError {
     }
 }
 
-fn transit_handler(info: TransitInfo) {
-    let conn_type = format!("{:#?}", info.conn_type);
-    let peer_addr = info.peer_addr.to_string();
+#[derive(Clone, Serialize)]
+#[serde(
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    tag = "event",
+    content = "data"
+)]
 
-    if info.conn_type == ConnectionType::Direct {
-        println!("Connecting {} to {}", conn_type, peer_addr);
-    } else {
-        println!("Connecting {}", conn_type);
-    };
-}
-
-fn progress_handler(sent: u64, total: u64) {
-    println!("Progress: {}/{}", sent, total);
-}
-
-async fn cancel() {
-    // TODO: Wait until file is fully transferred
-    sleep(Duration::from_secs(20)).await;
+enum WormholeEvent {
+    MailboxConnected { code: String },
+    Progress { sent: u64, total: u64 },
+    Finished,
 }
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command()]
-async fn send_file(path: String) -> Result<String, RunicError> {
+async fn send_file(
+    app: AppHandle,
+    path: String,
+    channel: Channel<WormholeEvent>,
+) -> Result<String, RunicError> {
     let app_config = wormhole::AppConfig {
         id: wormhole::AppID::new("lothar.com/wormhole/text-or-file-xfer"),
         rendezvous_url: "ws://relay.magic-wormhole.io:4000/v1".to_string().into(),
@@ -59,6 +57,11 @@ async fn send_file(path: String) -> Result<String, RunicError> {
     let connection = MailboxConnection::create(app_config, 4).await?;
 
     println!("CODE: {}", connection.code());
+    channel
+        .send(WormholeEvent::MailboxConnected {
+            code: connection.code().to_string(),
+        })
+        .unwrap();
 
     let wormhole = Wormhole::connect(connection).await?;
 
@@ -79,11 +82,26 @@ async fn send_file(path: String) -> Result<String, RunicError> {
         "filename.png".to_string(),
         metadata.len(),
         wormhole::transit::Abilities::ALL,
-        transit_handler,
-        progress_handler,
-        cancel(),
+        |info| {
+            let conn_type = format!("{:#?}", info.conn_type);
+            let peer_addr = info.peer_addr.to_string();
+
+            if info.conn_type == ConnectionType::Direct {
+                println!("Connecting {} to {}", conn_type, peer_addr);
+            } else {
+                println!("Connecting {}", conn_type);
+            };
+        },
+        move |sent, total| {
+            channel
+                .send(WormholeEvent::Progress { sent, total })
+                .unwrap();
+        },
+        std::future::pending(), // TODO: Implement cancel
     )
     .await?;
+
+    println!("DONE");
 
     Ok("DONE".to_string())
 }
