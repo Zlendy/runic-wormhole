@@ -43,16 +43,18 @@ impl serde::Serialize for RunicError {
     tag = "event",
     content = "data"
 )]
-
 enum WormholeEvent {
+    PickingFile,
+    MailboxConnecting,
     MailboxConnected { code: String },
     Progress { sent: u64, total: u64 },
-    Finished,
 }
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
-async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<String, RunicError> {
+async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<(), RunicError> {
+    channel.send(WormholeEvent::PickingFile).unwrap();
+
     let Some(path) = app.dialog().file().blocking_pick_file() else {
         return Err(RunicError::StringError("Cancelled".to_string()));
     };
@@ -64,14 +66,16 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<St
         }
     };
 
-    let file_name = path
+    let filename = path
         .file_name()
         .ok_or(RunicError::ParseFileNameError)?
         .to_str()
         .ok_or(RunicError::ParseFileNameError)?
         .to_owned();
 
-    println!("file: {}", file_name);
+    println!("file: {}", filename);
+
+    channel.send(WormholeEvent::MailboxConnecting).unwrap();
 
     let app_config = wormhole::AppConfig {
         id: wormhole::AppID::new("lothar.com/wormhole/text-or-file-xfer"),
@@ -104,7 +108,7 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<St
         wormhole,
         relay_hints,
         &mut file,
-        file_name,
+        filename,
         metadata.len(),
         wormhole::transit::Abilities::ALL,
         |info| {
@@ -127,8 +131,7 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<St
     .await?;
 
     println!("DONE");
-
-    Ok("DONE".to_string())
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
