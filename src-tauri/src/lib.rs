@@ -1,6 +1,7 @@
 use async_std::fs::File;
 use serde::Serialize;
 use tauri::{ipc::Channel, AppHandle};
+use tauri_plugin_dialog::{DialogExt, FilePath};
 use wormhole::{
     transfer::TransferError,
     transit::{ConnectionType, RelayHint},
@@ -11,10 +12,18 @@ use wormhole::{
 enum RunicError {
     #[error(transparent)]
     WormholeError(#[from] WormholeError),
+
     #[error(transparent)]
     IoError(#[from] std::io::Error),
+
     #[error(transparent)]
     TransferError(#[from] TransferError),
+
+    #[error("{0}")]
+    StringError(String),
+
+    #[error("Could not parse filename")]
+    ParseFileNameError,
 }
 
 // we must manually implement serde::Serialize
@@ -42,12 +51,28 @@ enum WormholeEvent {
 }
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command()]
-async fn send_file(
-    app: AppHandle,
-    path: String,
-    channel: Channel<WormholeEvent>,
-) -> Result<String, RunicError> {
+#[tauri::command]
+async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<String, RunicError> {
+    let Some(path) = app.dialog().file().blocking_pick_file() else {
+        return Err(RunicError::StringError("Cancelled".to_string()));
+    };
+
+    let path = match path {
+        FilePath::Path(test) => test,
+        FilePath::Url(_) => {
+            return Err(RunicError::StringError("URL is not supported".to_string()))
+        }
+    };
+
+    let file_name = path
+        .file_name()
+        .ok_or(RunicError::ParseFileNameError)?
+        .to_str()
+        .ok_or(RunicError::ParseFileNameError)?
+        .to_owned();
+
+    println!("file: {}", file_name);
+
     let app_config = wormhole::AppConfig {
         id: wormhole::AppID::new("lothar.com/wormhole/text-or-file-xfer"),
         rendezvous_url: "ws://relay.magic-wormhole.io:4000/v1".to_string().into(),
@@ -79,7 +104,7 @@ async fn send_file(
         wormhole,
         relay_hints,
         &mut file,
-        "filename.png".to_string(),
+        file_name,
         metadata.len(),
         wormhole::transit::Abilities::ALL,
         |info| {
@@ -109,6 +134,7 @@ async fn send_file(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![send_file])
         .run(tauri::generate_context!())

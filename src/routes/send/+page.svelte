@@ -49,7 +49,7 @@
 		};
 
 		try {
-			const response = await invoke('send_file', { path, channel });
+			const response = await invoke('send_file', { channel });
 			console.log('response', response);
 		} catch (e) {
 			console.error(e);
@@ -59,8 +59,6 @@
 </script>
 
 <div class="grid w-full max-w-sm items-center gap-1.5">
-	<Label for="path">Path</Label>
-	<Input id="path" bind:value={path} />
 	<Button onclick={send_file}>Send</Button>
 
 	<Label for="code">Code</Label>
