@@ -1,7 +1,10 @@
+use std::os::fd::{FromRawFd, IntoRawFd};
+
 use async_std::fs::File;
 use serde::Serialize;
 use tauri::{ipc::Channel, AppHandle};
-use tauri_plugin_dialog::{DialogExt, FilePath};
+use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_fs::{FsExt, OpenOptions};
 use wormhole::{
     transfer::TransferError,
     transit::{ConnectionType, RelayHint},
@@ -59,19 +62,16 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<()
         return Err(RunicError::StringError("Cancelled".to_string()));
     };
 
-    let path = match path {
-        FilePath::Path(test) => test,
-        FilePath::Url(_) => {
-            return Err(RunicError::StringError("URL is not supported".to_string()))
-        }
-    };
+    let options = OpenOptions::new().read(true).to_owned();
+    let fd = app.fs().open(path.clone(), options)?.into_raw_fd();
 
-    let filename = path
-        .file_name()
-        .ok_or(RunicError::ParseFileNameError)?
-        .to_str()
-        .ok_or(RunicError::ParseFileNameError)?
-        .to_owned();
+    let filename = "test.png".to_string(); // TODO
+
+    // // I really don't like this, but it's the only way I found to do it
+    // https://www.reddit.com/r/rust/comments/1duc594/comment/lbfubam
+    let mut file = unsafe { File::from_raw_fd(fd) };
+
+    let metadata = file.metadata().await?;
 
     println!("file: {}", filename);
 
@@ -99,10 +99,6 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<()
         ["tcp://transit.magic-wormhole.io:4001".parse().unwrap()],
     )
     .unwrap()];
-
-    let mut file = File::open(path).await?;
-
-    let metadata = file.metadata().await?;
 
     wormhole::transfer::send_file(
         wormhole,
@@ -137,6 +133,7 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<()
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![send_file])
