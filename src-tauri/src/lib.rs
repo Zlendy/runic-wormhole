@@ -1,43 +1,17 @@
+pub mod error;
+
 use std::os::fd::{FromRawFd, IntoRawFd};
 
 use async_std::fs::File;
+use error::RunicError;
 use serde::Serialize;
 use tauri::{ipc::Channel, AppHandle};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_fs::{FsExt, OpenOptions};
 use wormhole::{
-    transfer::TransferError,
     transit::{ConnectionType, RelayHint},
-    MailboxConnection, Wormhole, WormholeError,
+    MailboxConnection, Wormhole,
 };
-
-#[derive(Debug, thiserror::Error)]
-enum RunicError {
-    #[error(transparent)]
-    WormholeError(#[from] WormholeError),
-
-    #[error(transparent)]
-    IoError(#[from] std::io::Error),
-
-    #[error(transparent)]
-    TransferError(#[from] TransferError),
-
-    #[error("{0}")]
-    StringError(String),
-
-    #[error("Could not parse filename")]
-    ParseFileNameError,
-}
-
-// we must manually implement serde::Serialize
-impl serde::Serialize for RunicError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::ser::Serializer,
-    {
-        serializer.serialize_str(self.to_string().as_ref())
-    }
-}
 
 #[derive(Clone, Serialize)]
 #[serde(
