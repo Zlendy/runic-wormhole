@@ -1,13 +1,10 @@
 pub mod error;
+pub mod fs;
 
-use std::os::fd::{FromRawFd, IntoRawFd};
-
-use async_std::fs::File;
 use error::RunicError;
 use serde::Serialize;
 use tauri::{ipc::Channel, AppHandle};
 use tauri_plugin_dialog::DialogExt;
-use tauri_plugin_fs::{FsExt, OpenOptions};
 use wormhole::{
     transit::{ConnectionType, RelayHint},
     MailboxConnection, Wormhole,
@@ -32,22 +29,17 @@ enum WormholeEvent {
 async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<(), RunicError> {
     channel.send(WormholeEvent::PickingFile).unwrap();
 
-    let Some(path) = app.dialog().file().blocking_pick_file() else {
+    let Some(filepath) = app.dialog().file().blocking_pick_file() else {
         return Err(RunicError::StringError("Cancelled".to_string()));
     };
 
-    let options = OpenOptions::new().read(true).to_owned();
-    let fd = app.fs().open(path.clone(), options)?.into_raw_fd();
+    let fs::FileData {
+        mut file,
+        size,
+        name,
+    } = fs::open_file(app, filepath).await?;
 
-    let filename = "test.png".to_string(); // TODO
-
-    // // I really don't like this, but it's the only way I found to do it
-    // https://www.reddit.com/r/rust/comments/1duc594/comment/lbfubam
-    let mut file = unsafe { File::from_raw_fd(fd) };
-
-    let metadata = file.metadata().await?;
-
-    println!("file: {}", filename);
+    println!("file: {}", name);
 
     channel.send(WormholeEvent::MailboxConnecting).unwrap();
 
@@ -78,8 +70,8 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<()
         wormhole,
         relay_hints,
         &mut file,
-        filename,
-        metadata.len(),
+        name,
+        size,
         wormhole::transit::Abilities::ALL,
         |info| {
             let conn_type = format!("{:#?}", info.conn_type);
