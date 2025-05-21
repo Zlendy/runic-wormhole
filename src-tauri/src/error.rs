@@ -16,6 +16,9 @@ pub enum RunicError {
 
     #[error("Could not parse filename")]
     ParseFileNameError,
+
+    #[error("Cancelled")]
+    Cancelled,
 }
 
 // we must manually implement serde::Serialize

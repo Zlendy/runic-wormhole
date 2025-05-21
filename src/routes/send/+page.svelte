@@ -5,9 +5,14 @@
 	import Progress from '$lib/components/ui/progress/progress.svelte';
 	import CircleAlert from '@lucide/svelte/icons/circle-alert';
 	import * as Alert from '$lib/components/ui/alert/index.js';
+	import { emit } from '@tauri-apps/api/event';
 
 	import { Stage, wormhole } from '$lib/wormhole.svelte';
 </script>
+
+{#snippet cancel()}
+	<Button variant="destructive" onclick={() => emit('cancel')}>Cancel</Button>
+{/snippet}
 
 <div class="grid w-full max-w-sm items-center gap-1.5">
 	{#if [Stage.INITIAL, Stage.PICKING_FILE].includes(wormhole.stage)}
@@ -17,9 +22,11 @@
 	{:else if wormhole.stage === Stage.MAILBOX_CONNECTED}
 		<Label for="code">Code</Label>
 		<Input id="code" value={wormhole.code} readonly />
+		{@render cancel()}
 	{:else if wormhole.stage === Stage.PROGRESS}
 		{wormhole.progress.sent}/{wormhole.progress.total}
 		<Progress value={wormhole.progress.sent} max={wormhole.progress.total} />
+		{@render cancel()}
 	{:else if wormhole.stage === Stage.ERROR}
 		<Alert.Root variant="destructive">
 			<CircleAlert class="size-4" />

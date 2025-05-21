@@ -1,10 +1,15 @@
 pub mod error;
 pub mod fs;
+pub mod util;
+
+use std::sync::Arc;
 
 use error::RunicError;
 use serde::Serialize;
-use tauri::{ipc::Channel, AppHandle};
+use tauri::{ipc::Channel, AppHandle, Listener};
 use tauri_plugin_dialog::DialogExt;
+use tokio::sync::Notify;
+use util::cancellable;
 use wormhole::{
     transit::{ConnectionType, RelayHint},
     MailboxConnection, Wormhole,
@@ -27,10 +32,17 @@ enum WormholeEvent {
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<(), RunicError> {
+    let notify_cancel_write = Arc::new(Notify::new());
+    let notify_cancel_read = notify_cancel_write.clone();
+
+    app.once("cancel", move |_| {
+        notify_cancel_write.notify_one();
+    });
+
     channel.send(WormholeEvent::PickingFile).unwrap();
 
     let Some(filepath) = app.dialog().file().blocking_pick_file() else {
-        return Err(RunicError::StringError("Cancelled".to_string()));
+        return Err(RunicError::Cancelled);
     };
 
     let fs::FileData {
@@ -58,7 +70,8 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<()
         })
         .unwrap();
 
-    let wormhole = Wormhole::connect(connection).await?;
+    let wormhole =
+        cancellable(Wormhole::connect(connection), notify_cancel_read.notified()).await??;
 
     let relay_hints = vec![RelayHint::from_urls(
         None,
@@ -66,31 +79,34 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<()
     )
     .unwrap()];
 
-    wormhole::transfer::send_file(
-        wormhole,
-        relay_hints,
-        &mut file,
-        name,
-        size,
-        wormhole::transit::Abilities::ALL,
-        |info| {
-            let conn_type = format!("{:#?}", info.conn_type);
-            let peer_addr = info.peer_addr.to_string();
+    cancellable(
+        wormhole::transfer::send_file(
+            wormhole,
+            relay_hints,
+            &mut file,
+            name,
+            size,
+            wormhole::transit::Abilities::ALL,
+            |info| {
+                let conn_type = format!("{:#?}", info.conn_type);
+                let peer_addr = info.peer_addr.to_string();
 
-            if info.conn_type == ConnectionType::Direct {
-                println!("Connecting {} to {}", conn_type, peer_addr);
-            } else {
-                println!("Connecting {}", conn_type);
-            };
-        },
-        move |sent, total| {
-            channel
-                .send(WormholeEvent::Progress { sent, total })
-                .unwrap();
-        },
-        std::future::pending(), // TODO: Implement cancel
+                if info.conn_type == ConnectionType::Direct {
+                    println!("Connecting {} to {}", conn_type, peer_addr);
+                } else {
+                    println!("Connecting {}", conn_type);
+                };
+            },
+            move |sent, total| {
+                channel
+                    .send(WormholeEvent::Progress { sent, total })
+                    .unwrap();
+            },
+            std::future::pending(),
+        ),
+        notify_cancel_read.notified(),
     )
-    .await?;
+    .await??;
 
     println!("DONE");
     Ok(())
