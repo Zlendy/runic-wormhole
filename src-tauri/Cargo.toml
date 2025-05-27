@@ -26,6 +26,6 @@ wormhole = { package = "magic-wormhole", version = "0.7.6" }
 thiserror = "2.0.12"
 async-std = "1.13.1"
 tauri-plugin-dialog = "2"
-tokio = "1.45.0"
+tokio = "1.45.1"
 tauri-plugin-fs = "2.2.1"
 futures = "0.3.31"
