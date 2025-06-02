@@ -30,7 +30,7 @@
 		"eslint-config-prettier": "^10.1.5",
 		"eslint-plugin-svelte": "^3.9.0",
 		"prettier-plugin-svelte": "^3.4.0",
-		"prettier-plugin-tailwindcss": "^0.6.11",
+		"prettier-plugin-tailwindcss": "^0.6.12",
 		"svelte": "^5.33.4",
 		"svelte-check": "^4.2.1",
 		"tailwind-merge": "^3.3.0",
