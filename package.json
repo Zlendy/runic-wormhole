@@ -27,7 +27,7 @@
 		"@tauri-apps/cli": "^2",
 		"bits-ui": "^2.4.1",
 		"clsx": "^2.1.1",
-		"eslint": "^9.27.0",
+		"eslint": "^9.28.0",
 		"eslint-config-prettier": "^10.1.5",
 		"eslint-plugin-svelte": "^3.9.0",
 		"prettier-plugin-svelte": "^3.4.0",
