@@ -33,7 +33,7 @@
 	{/each}
 {/snippet}
 
-<header class="hidden flex-wrap justify-center gap-4 sm:flex mt-4">
+<header class="mt-4 hidden flex-wrap justify-center gap-4 sm:flex">
 	{@render nav()}
 </header>
 
@@ -41,6 +41,6 @@
 	{@render children()}
 </main>
 
-<footer class="fixed bottom-4 left-0 right-0 flex flex-wrap justify-center gap-4 sm:hidden">
+<footer class="fixed right-0 bottom-4 left-0 flex flex-wrap justify-center gap-4 sm:hidden">
 	{@render nav()}
 </footer>
