@@ -21,7 +21,7 @@
 		"@internationalized/date": "^3.8.2",
 		"@lucide/svelte": "^0.513.0",
 		"@sveltejs/adapter-static": "^3.0.8",
-		"@sveltejs/kit": "^2.21.2",
+		"@sveltejs/kit": "^2.21.3",
 		"@sveltejs/vite-plugin-svelte": "^5.1.0",
 		"@tailwindcss/vite": "^4.1.8",
 		"@tauri-apps/cli": "^2",
