@@ -30,7 +30,7 @@ enum WormholeEvent {
 }
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
+#[tauri::command(async)]
 async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<(), RunicError> {
     let notify_cancel_write = Arc::new(Notify::new());
     let notify_cancel_read = notify_cancel_write.clone();
@@ -112,7 +112,7 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<()
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 async fn receive_file(
     app: AppHandle,
     channel: Channel<WormholeEvent>,
