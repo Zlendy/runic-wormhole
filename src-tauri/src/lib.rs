@@ -4,6 +4,7 @@ pub mod util;
 
 use std::sync::Arc;
 
+use chrono::{DateTime, Utc};
 use error::RunicError;
 use serde::Serialize;
 use tauri::{ipc::Channel, AppHandle, Listener};
@@ -32,6 +33,8 @@ enum WormholeEvent {
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command(async)]
 async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<(), RunicError> {
+    let mut last_progress = DateTime::<Utc>::default();
+
     let notify_cancel_write = Arc::new(Notify::new());
     let notify_cancel_read = notify_cancel_write.clone();
 
@@ -98,6 +101,15 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<()
                 };
             },
             move |sent, total| {
+                let now = Utc::now();
+                let diff = now - last_progress;
+
+                if diff.num_milliseconds() < 50 {
+                    return;
+                }
+
+                last_progress = now;
+
                 channel
                     .send(WormholeEvent::Progress { sent, total })
                     .unwrap();
@@ -118,6 +130,8 @@ async fn receive_file(
     channel: Channel<WormholeEvent>,
     code: String,
 ) -> Result<(), RunicError> {
+    let mut last_progress = DateTime::<Utc>::default();
+
     let notify_cancel_write = Arc::new(Notify::new());
     let notify_cancel_read = notify_cancel_write.clone();
 
@@ -186,6 +200,15 @@ async fn receive_file(
                 };
             },
             move |sent, total| {
+                let now = Utc::now();
+                let diff = now - last_progress;
+
+                if diff.num_milliseconds() < 50 {
+                    return;
+                }
+
+                last_progress = now;
+
                 channel
                     .send(WormholeEvent::Progress { sent, total })
                     .unwrap();
