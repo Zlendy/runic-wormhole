@@ -31,12 +31,19 @@ export type WormholeEvent =
 			};
 	  };
 
+export type ActiveProcess = null | 'send' | 'receive';
+
+let active: ActiveProcess = $state(null);
 let stage = $state(Stage.INITIAL);
 let code = $state<string>();
 let progress = $state({ sent: 0, total: 0 });
 let error = $state<unknown>();
 
 export const wormhole = {
+	get active() {
+		return active;
+	},
+
 	get stage() {
 		return stage;
 	},
@@ -55,6 +62,7 @@ export const wormhole = {
 
 	async send_file(event: Event) {
 		event.preventDefault();
+		active = 'send';
 
 		if (stage !== Stage.INITIAL) return;
 		stage = Stage.MAILBOX_CONNECTING;
@@ -92,6 +100,7 @@ export const wormhole = {
 
 	async receive_file(event: Event, code: string) {
 		event.preventDefault();
+		active = 'receive';
 
 		if (stage !== Stage.INITIAL) return;
 		stage = Stage.MAILBOX_CONNECTING;
@@ -130,5 +139,6 @@ export const wormhole = {
 		progress.sent = 0;
 		progress.total = 0;
 		error = undefined;
+		active = null;
 	}
 };

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { Button } from '$lib/components/ui/button';
+	import { wormhole } from '$lib/wormhole.svelte';
 
 	interface Route {
 		href: string;
@@ -9,15 +10,15 @@
 
 	const routes: Route[] = [
 		{
-			href: '/send',
+			href: 'send',
 			name: 'Send'
 		},
 		{
-			href: '/receive',
+			href: 'receive',
 			name: 'Receive'
 		},
 		{
-			href: '/settings',
+			href: 'settings',
 			name: 'Settings'
 		}
 	];
@@ -27,7 +28,7 @@
 
 {#snippet nav()}
 	{#each routes as route}
-		<Button href={route.href}>
+		<Button href={route.href} disabled={wormhole.active !== null && wormhole.active !== route.href}>
 			{route.name}
 		</Button>
 	{/each}

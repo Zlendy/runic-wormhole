@@ -20,9 +20,9 @@
 	{#if wormhole.stage === Stage.INITIAL}
 		<Label for="code">Code</Label>
 		<Input id="code" bind:value={code} />
-		<Button onclick={(e) => wormhole.receive_file(e, code)} disabled={code.trim() === ''}
-			>Receive</Button
-		>
+		<Button onclick={(e) => wormhole.receive_file(e, code)} disabled={code.trim() === ''}>
+			Receive
+		</Button>
 	{:else if wormhole.stage === Stage.MAILBOX_CONNECTING}
 		Connecting...
 	{:else if wormhole.stage === Stage.MAILBOX_CONNECTED}
