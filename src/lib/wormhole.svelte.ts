@@ -33,39 +33,19 @@ export type WormholeEvent =
 
 export type ActiveProcess = null | 'send' | 'receive';
 
-let active: ActiveProcess = $state(null);
-let stage = $state(Stage.INITIAL);
-let code = $state<string>();
-let progress = $state({ sent: 0, total: 0 });
-let error = $state<unknown>();
-
-export const wormhole = {
-	get active() {
-		return active;
-	},
-
-	get stage() {
-		return stage;
-	},
-
-	get code() {
-		return code;
-	},
-
-	get progress() {
-		return progress;
-	},
-
-	get error() {
-		return error;
-	},
+class Wormhole {
+	active: ActiveProcess = $state(null);
+	stage = $state(Stage.INITIAL);
+	code = $state<string>();
+	progress = $state({ sent: 0, total: 0 });
+	error = $state<unknown>();
 
 	async send_file(event: Event) {
 		event.preventDefault();
-		active = 'send';
+		this.active = 'send';
 
-		if (stage !== Stage.INITIAL) return;
-		stage = Stage.MAILBOX_CONNECTING;
+		if (this.stage !== Stage.INITIAL) return;
+		this.stage = Stage.MAILBOX_CONNECTING;
 
 		const channel = new Channel<WormholeEvent>();
 		channel.onmessage = (message) => {
@@ -74,10 +54,10 @@ export const wormhole = {
 				case Stage.PICKING_FILE:
 					break;
 				case Stage.MAILBOX_CONNECTED:
-					code = message.data.code;
+					this.code = message.data.code;
 					break;
 				case Stage.PROGRESS:
-					progress = message.data;
+					this.progress = message.data;
 					break;
 				default:
 					console.error('Unknown message type', message);
@@ -85,25 +65,25 @@ export const wormhole = {
 			}
 
 			// This assumes every possible stage in "message.event" is considered in the "Stage" enum
-			stage = message.event;
+			this.stage = message.event;
 		};
 
 		try {
 			await invoke('send_file', { channel });
-			stage = Stage.FINISHED;
+			this.stage = Stage.FINISHED;
 		} catch (e) {
 			console.error(e);
-			error = e;
-			stage = Stage.ERROR;
+			this.error = e;
+			this.stage = Stage.ERROR;
 		}
-	},
+	}
 
 	async receive_file(event: Event, code: string) {
 		event.preventDefault();
-		active = 'receive';
+		this.active = 'receive';
 
-		if (stage !== Stage.INITIAL) return;
-		stage = Stage.MAILBOX_CONNECTING;
+		if (this.stage !== Stage.INITIAL) return;
+		this.stage = Stage.MAILBOX_CONNECTING;
 
 		const channel = new Channel<WormholeEvent>();
 		channel.onmessage = (message) => {
@@ -112,7 +92,7 @@ export const wormhole = {
 				case Stage.MAILBOX_CONNECTED:
 					break;
 				case Stage.PROGRESS:
-					progress = message.data;
+					this.progress = message.data;
 					break;
 				default:
 					console.error('Unknown message type', message);
@@ -120,25 +100,27 @@ export const wormhole = {
 			}
 
 			// This assumes every possible stage in "message.event" is considered in the "Stage" enum
-			stage = message.event;
+			this.stage = message.event;
 		};
 
 		try {
 			await invoke('receive_file', { channel, code });
-			stage = Stage.FINISHED;
+			this.stage = Stage.FINISHED;
 		} catch (e) {
 			console.error(e);
-			error = e;
-			stage = Stage.ERROR;
+			this.error = e;
+			this.stage = Stage.ERROR;
 		}
-	},
+	}
 
 	reset() {
-		stage = Stage.INITIAL;
-		code = '';
-		progress.sent = 0;
-		progress.total = 0;
-		error = undefined;
-		active = null;
+		this.stage = Stage.INITIAL;
+		this.code = '';
+		this.progress.sent = 0;
+		this.progress.total = 0;
+		this.error = undefined;
+		this.active = null;
 	}
-};
+}
+
+export const wormhole = new Wormhole();

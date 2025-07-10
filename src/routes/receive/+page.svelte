@@ -38,12 +38,12 @@
 			<Alert.Title>Error</Alert.Title>
 			<Alert.Description>{wormhole.error}</Alert.Description>
 		</Alert.Root>
-		<Button onclick={wormhole.reset}>Try again</Button>
+		<Button onclick={() => wormhole.reset()}>Try again</Button>
 	{:else if wormhole.stage === Stage.FINISHED}
 		File received successfully
-		<Button onclick={wormhole.reset}>Receive more</Button>
+		<Button onclick={() => wormhole.reset()}>Receive more</Button>
 	{:else}
 		INVALID STAGE "{wormhole.stage}"
-		<Button onclick={wormhole.reset}>Try again</Button>
+		<Button onclick={() => wormhole.reset()}>Try again</Button>
 	{/if}
 </div>

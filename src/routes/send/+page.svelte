@@ -16,7 +16,9 @@
 
 <div class="grid w-full max-w-sm items-center gap-1.5">
 	{#if [Stage.INITIAL, Stage.PICKING_FILE].includes(wormhole.stage)}
-		<Button onclick={wormhole.send_file} disabled={wormhole.stage !== Stage.INITIAL}>Send</Button>
+		<Button onclick={(e) => wormhole.send_file(e)} disabled={wormhole.stage !== Stage.INITIAL}>
+			Send
+		</Button>
 	{:else if wormhole.stage === Stage.MAILBOX_CONNECTING}
 		Connecting...
 	{:else if wormhole.stage === Stage.MAILBOX_CONNECTED}
@@ -33,12 +35,12 @@
 			<Alert.Title>Error</Alert.Title>
 			<Alert.Description>{wormhole.error}</Alert.Description>
 		</Alert.Root>
-		<Button onclick={wormhole.reset}>Try again</Button>
+		<Button onclick={() => wormhole.reset()}>Try again</Button>
 	{:else if wormhole.stage === Stage.FINISHED}
 		File sent successfully
-		<Button onclick={wormhole.reset}>Send more</Button>
+		<Button onclick={() => wormhole.reset()}>Send more</Button>
 	{:else}
 		INVALID STAGE "{wormhole.stage}"
-		<Button onclick={wormhole.reset}>Try again</Button>
+		<Button onclick={() => wormhole.reset()}>Try again</Button>
 	{/if}
 </div>
