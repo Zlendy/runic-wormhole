@@ -2,6 +2,7 @@
 	import '../app.css';
 	import { Button } from '$lib/components/ui/button';
 	import { wormhole } from '$lib/wormhole.svelte';
+	import { ModeWatcher } from 'mode-watcher';
 
 	interface Route {
 		href: string;
@@ -33,6 +34,8 @@
 		</Button>
 	{/each}
 {/snippet}
+
+<ModeWatcher />
 
 <header class="mt-4 hidden flex-wrap justify-center gap-4 sm:flex">
 	{@render nav()}
