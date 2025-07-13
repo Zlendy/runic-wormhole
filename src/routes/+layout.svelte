@@ -3,22 +3,27 @@
 	import { Button } from '$lib/components/ui/button';
 	import { wormhole } from '$lib/wormhole.svelte';
 	import { ModeWatcher } from 'mode-watcher';
+	import { Download, Icon, Send, Settings } from "@lucide/svelte";
 
 	interface Route {
+		icon: typeof Icon;
 		href: string;
 		name: string;
 	}
 
 	const routes: Route[] = [
 		{
+			icon: Send,
 			href: 'send',
 			name: 'Send'
 		},
 		{
+			icon: Download,
 			href: 'receive',
 			name: 'Receive'
 		},
 		{
+			icon: Settings,
 			href: 'settings',
 			name: 'Settings'
 		}
@@ -30,6 +35,7 @@
 {#snippet nav()}
 	{#each routes as route}
 		<Button class="flex-grow min-w-26" href={route.href} disabled={wormhole.active !== null && wormhole.active !== route.href}>
+			<route.icon />
 			{route.name}
 		</Button>
 	{/each}
