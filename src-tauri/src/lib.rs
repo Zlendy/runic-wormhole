@@ -32,7 +32,7 @@ enum WormholeEvent {
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command(async)]
-async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<(), RunicError> {
+async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>, code_length: usize) -> Result<(), RunicError> {
     let mut last_progress = DateTime::<Utc>::default();
 
     let notify_cancel_write = Arc::new(Notify::new());
@@ -64,7 +64,7 @@ async fn send_file(app: AppHandle, channel: Channel<WormholeEvent>) -> Result<()
         app_version: wormhole::transfer::AppVersion::default(),
     };
 
-    let connection = MailboxConnection::create(app_config, 4).await?;
+    let connection = MailboxConnection::create(app_config, code_length).await?;
 
     println!("CODE: {}", connection.code());
     channel

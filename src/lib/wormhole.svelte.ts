@@ -40,7 +40,7 @@ class Wormhole {
 	progress = $state({ sent: 0, total: 0 });
 	error = $state<unknown>();
 
-	async send_file(event: Event) {
+	async send_file(event: Event, codeLength: number = 4) {
 		event.preventDefault();
 		this.active = 'send';
 
@@ -69,7 +69,7 @@ class Wormhole {
 		};
 
 		try {
-			await invoke('send_file', { channel });
+			await invoke('send_file', { channel, codeLength });
 			this.stage = Stage.FINISHED;
 		} catch (e) {
 			console.error(e);

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Label } from '$lib/components/ui/label';
-	import { Input } from '$lib/components/ui/input';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Progress from '$lib/components/ui/progress/progress.svelte';
 	import CircleAlert from '@lucide/svelte/icons/circle-alert';
@@ -8,6 +8,7 @@
 	import { emit } from '@tauri-apps/api/event';
 
 	import { Stage, wormhole } from '$lib/wormhole.svelte';
+	import { codeLength } from '$lib/localstorage.svelte';
 </script>
 
 {#snippet cancel()}
@@ -16,14 +17,14 @@
 
 <div class="grid w-full max-w-sm items-center gap-1.5">
 	{#if [Stage.INITIAL, Stage.PICKING_FILE].includes(wormhole.stage)}
-		<Button onclick={(e) => wormhole.send_file(e)} disabled={wormhole.stage !== Stage.INITIAL}>
+		<Button onclick={(e) => wormhole.send_file(e, $codeLength)} disabled={wormhole.stage !== Stage.INITIAL}>
 			Send
 		</Button>
 	{:else if wormhole.stage === Stage.MAILBOX_CONNECTING}
 		Connecting...
 	{:else if wormhole.stage === Stage.MAILBOX_CONNECTED}
 		<Label for="code">Code</Label>
-		<Input id="code" value={wormhole.code} readonly />
+		<Textarea id="code" value={wormhole.code} readonly />
 		{@render cancel()}
 	{:else if wormhole.stage === Stage.PROGRESS}
 		{wormhole.progress.sent}/{wormhole.progress.total}
