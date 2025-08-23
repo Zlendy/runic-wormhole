@@ -1,9 +1,10 @@
 [package]
 name = "runic-wormhole"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-edition = "2021"
+description = "Cross-platform app to transfer files between devices using the magic wormhole protocol"
+license = "GPL-3.0-only"
+authors = ["Zlendy"]
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

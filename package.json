@@ -1,7 +1,13 @@
 {
 	"name": "runic-wormhole",
 	"version": "0.1.0",
-	"description": "",
+	"description": "Cross-platform app to transfer files between devices using the magic wormhole protocol",
+	"license": "GPL-3.0-only",
+	"author": {
+		"name": "Zlendy",
+		"email": "zlendy@proton.me",
+		"url": "https://zlendy.com"
+	},
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -11,7 +17,6 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"tauri": "tauri"
 	},
-	"license": "MIT",
 	"dependencies": {
 		"@tauri-apps/api": "2.8.0",
 		"@tauri-apps/plugin-dialog": "^2.3.3",
