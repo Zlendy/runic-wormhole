@@ -46,7 +46,7 @@ pub async fn open_file(_app: AppHandle, filepath: FilePath) -> Result<FileData, 
                 // // I really don't like this, but it's the only way I found to do it
                 // https://www.reddit.com/r/rust/comments/1duc594/comment/lbfubam
                 let file = unsafe { File::from_raw_fd(fd) };
-                let name = "test.png".to_string(); // TODO
+                let name = "file".to_string(); // TODO
                 let size = file.metadata().await?.len();
 
                 return Ok(FileData { file, size, name });
