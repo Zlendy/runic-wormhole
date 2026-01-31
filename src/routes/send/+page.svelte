@@ -12,12 +12,15 @@
 </script>
 
 {#snippet cancel()}
-	<Button variant="destructive" onclick={() => emit('cancel')}>Cancel</Button>
+	<Button class="cursor-pointer" variant="destructive" onclick={() => emit('cancel')}>
+		Cancel
+	</Button>
 {/snippet}
 
 <div class="grid w-full max-w-sm items-center gap-1.5">
 	{#if [Stage.INITIAL, Stage.PICKING_FILE].includes(wormhole.stage)}
 		<Button
+			class="cursor-pointer"
 			onclick={(e) => wormhole.send_file(e, $codeLength)}
 			disabled={wormhole.stage !== Stage.INITIAL}
 		>
@@ -39,12 +42,12 @@
 			<Alert.Title>Error</Alert.Title>
 			<Alert.Description>{wormhole.error}</Alert.Description>
 		</Alert.Root>
-		<Button onclick={() => wormhole.reset()}>Try again</Button>
+		<Button class="cursor-pointer" onclick={() => wormhole.reset()}>Try again</Button>
 	{:else if wormhole.stage === Stage.FINISHED}
 		File sent successfully
-		<Button onclick={() => wormhole.reset()}>Send more</Button>
+		<Button class="cursor-pointer" onclick={() => wormhole.reset()}>Send more</Button>
 	{:else}
 		INVALID STAGE "{wormhole.stage}"
-		<Button onclick={() => wormhole.reset()}>Try again</Button>
+		<Button class="cursor-pointer" onclick={() => wormhole.reset()}>Try again</Button>
 	{/if}
 </div>

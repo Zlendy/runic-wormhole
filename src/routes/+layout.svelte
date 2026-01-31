@@ -35,7 +35,7 @@
 {#snippet nav()}
 	{#each routes as route}
 		<Button
-			class="min-w-26 flex-grow"
+			class="min-w-26 grow cursor-pointer sm:max-w-64"
 			href={route.href}
 			disabled={wormhole.active !== null && wormhole.active !== route.href}
 		>
@@ -47,11 +47,11 @@
 
 <ModeWatcher />
 
-<header class="mx-auto mt-4 hidden max-w-xl flex-wrap justify-center gap-4 px-4 sm:flex">
+<header class="mt-4 hidden flex-wrap justify-center gap-4 px-4 sm:flex">
 	{@render nav()}
 </header>
 
-<main class="flex justify-center p-4">
+<main class="flex flex-1 flex-col items-center justify-center p-4">
 	{@render children()}
 </main>
 

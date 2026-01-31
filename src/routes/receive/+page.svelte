@@ -13,14 +13,20 @@
 </script>
 
 {#snippet cancel()}
-	<Button variant="destructive" onclick={() => emit('cancel')}>Cancel</Button>
+	<Button class="cursor-pointer" variant="destructive" onclick={() => emit('cancel')}>
+		Cancel
+	</Button>
 {/snippet}
 
 <div class="grid w-full max-w-sm items-center gap-1.5">
 	{#if wormhole.stage === Stage.INITIAL}
 		<Label for="code">Code</Label>
 		<Input id="code" bind:value={code} />
-		<Button onclick={(e) => wormhole.receive_file(e, code)} disabled={code.trim() === ''}>
+		<Button
+			class="cursor-pointer"
+			onclick={(e) => wormhole.receive_file(e, code)}
+			disabled={code.trim() === ''}
+		>
 			Receive
 		</Button>
 	{:else if wormhole.stage === Stage.MAILBOX_CONNECTING}
@@ -38,12 +44,12 @@
 			<Alert.Title>Error</Alert.Title>
 			<Alert.Description>{wormhole.error}</Alert.Description>
 		</Alert.Root>
-		<Button onclick={() => wormhole.reset()}>Try again</Button>
+		<Button class="cursor-pointer" onclick={() => wormhole.reset()}>Try again</Button>
 	{:else if wormhole.stage === Stage.FINISHED}
 		File received successfully
-		<Button onclick={() => wormhole.reset()}>Receive more</Button>
+		<Button class="cursor-pointer" onclick={() => wormhole.reset()}>Receive more</Button>
 	{:else}
 		INVALID STAGE "{wormhole.stage}"
-		<Button onclick={() => wormhole.reset()}>Try again</Button>
+		<Button class="cursor-pointer" onclick={() => wormhole.reset()}>Try again</Button>
 	{/if}
 </div>
