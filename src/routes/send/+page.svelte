@@ -17,7 +17,10 @@
 
 <div class="grid w-full max-w-sm items-center gap-1.5">
 	{#if [Stage.INITIAL, Stage.PICKING_FILE].includes(wormhole.stage)}
-		<Button onclick={(e) => wormhole.send_file(e, $codeLength)} disabled={wormhole.stage !== Stage.INITIAL}>
+		<Button
+			onclick={(e) => wormhole.send_file(e, $codeLength)}
+			disabled={wormhole.stage !== Stage.INITIAL}
+		>
 			Send
 		</Button>
 	{:else if wormhole.stage === Stage.MAILBOX_CONNECTING}
